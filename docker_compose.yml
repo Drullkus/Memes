@@ -1,43 +1,30 @@
 version: "3.8" # https://docs.docker.com/compose/compose-file/compose-file-v3/
 
 services:
-#  db:
-#    image: 'postgres:13.1-alpine'
-#    container_name: db
-#    secrets:
-#      - db_unlock_username
-#      - db_unlock_password
-#    environment:
-#      - POSTGRES_USER_FILE=/run/secrets/db_unlock_username
-#      - POSTGRES_PASSWORD_FILE=/run/secrets/db_unlock_password
-#    volumes:
-#      - postgres-data:/var/lib/postgresql/data
+  db:
+    image: 'postgres:13.1-alpine'
+    container_name: db
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
   meme_app:
-    container_name: meme_app
+    container_name: smashing_memes_together # Aaaayy
     build:
       dockerfile: gradle_built.dockerfile
     ports:
       - "8080:8080"
-#    depends_on:
-#      - db
+    depends_on:
+      - db
     environment:
-      - SPRING_GITHUB_ID
-      - SPRING_GITHUB_SECRET
-      # SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
-      # SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      # Using file contents for passwords instead of direct variables is a feature
-      # for Databases apparently, and is not a standardized expectation
-      # TODO Below info should be set for environment variables (SPRING_DATASOURCE_USERNAME & SPRING_DATASOURCE_PASSWORD)
-      #  Also Use same env vars for POSTGRES_USER & POSTGRES_PASSWORD once above is resolved
-      # SPRING_DATASOURCE_USERNAME=compose-postgres
-      # SPRING_DATASOURCE_PASSWORD=compose-postgres
+      - GITHUB_OAUTH_ID # To be directly passed in from an .env file
+      - GITHUB_OAUTH_SECRET # To be directly passed in from an .env file
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
 
-#secrets:
-#  db_unlock_username:
-#    file: ./secrets/username.txt
-#  db_unlock_password:
-#    file: ./secrets/password.txt
-
-#volumes:
-#  postgres-data:
+volumes:
+  postgres-data:

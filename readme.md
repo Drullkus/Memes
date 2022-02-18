@@ -1,11 +1,19 @@
 # Memes
 A website where you can authenticate yourself using Github then post memes. Memes
 
-To start, you will need to configure an [Oauth App on Github](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app) to get your client ID and client secret. Once you have these; write an `.env` file in this root directory (ignored by VCS) and write the file contents as follows:
+To even run this project, you will need to create an `.env` file at the project root before you can run `sudo docker compose -f docker_compose.yml up`.
 
-```.env
-SPRING_GITHUB_ID=<Your Github ID>
-SPRING_GITHUB_SECRET=<Your Github Seceret>
+## The `.env` file
+
+Start your `.env` file with this blank template and start quantifying each variable with its appropriate value:
+
+```
+GITHUB_OAUTH_ID=
+GITHUB_OAUTH_SECRET=
+
+POSTGRES_USER=
+POSTGRES_PASSWORD=
 ```
 
-Replace these placeholders `<Your Github ID>` and `<Your Github Secret>` with their real values respectively, once you have obtained your Oauth ID and Secret from the hyperlink above.
+- You will need to configure an [Oauth App on Github](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app) to get your client ID and client secret.
+- Pick a username and password for locking the Postgres database.
