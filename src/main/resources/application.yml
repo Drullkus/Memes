@@ -1,11 +1,12 @@
+auth0:
+  audience: ${API_IDENTIFIER}
 spring:
   security:
     oauth2:
-      client:
-        registration:
-          github:
-            clientId: ${GITHUB_OAUTH_ID}
-            clientSecret: ${GITHUB_OAUTH_SECRET}
+      resourceserver:
+        jwt:
+          issuer-uri: ${API_ISSUER_URI}
+
   jpa:
     show-sql: true
     generate-ddl: true
