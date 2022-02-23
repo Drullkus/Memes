@@ -1,76 +1,114 @@
 package us.drullk.memes;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-import us.drullk.memes.database.UserRepository;
-import us.drullk.memes.database.entity.Memer;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import us.drullk.memes.database.MemeRepository;
+import us.drullk.memes.database.entity.Meme;
+
+import java.io.IOException;
+import java.util.stream.Collectors;
 
 @SpringBootApplication
-@RestController
-public class MemesApplication extends WebSecurityConfigurerAdapter {
-	private static final Logger logger = LoggerFactory.getLogger(MemesApplication.class);
+@Controller
+public class MemesApplication/* extends WebSecurityConfigurerAdapter*/ {
+	public static final Logger logger = LoggerFactory.getLogger(MemesApplication.class);
 
+	//@Autowired
+	//private UserRepository userRepository;
 	@Autowired
-	private UserRepository repository;
+	private MemeRepository memeRepository;
 
 	public static void main(String... args) {
 		SpringApplication.run(MemesApplication.class, args);
 	}
 
-	@EventListener(ApplicationReadyEvent.class)
+	// TODO: Rebuild into a test
+	/*@EventListener(ApplicationReadyEvent.class)
 	public void runAfterStartup() {
-		List<Memer> allUsers = this.repository.findAll();
+		List<Memer> allUsers = this.userRepository.findAll();
 		logger.info("User count: " + allUsers.size());
 
 		Memer drullkusUser = new Memer();
 		drullkusUser.setDisplayName("Drullkus");
 		drullkusUser.setGithubUserID("Drullkus");
 		logger.info("Adding Drullkus user...");
-		this.repository.save(drullkusUser);
+		this.userRepository.save(drullkusUser);
 
-		allUsers = this.repository.findAll();
+		allUsers = this.userRepository.findAll();
 		logger.info("User count re-queried: " + allUsers.size());
+	}*/
+
+	//@GetMapping("/user")
+	//public Map<String, Object> user(@AuthenticationPrincipal OAuth2User principal/*, RedirectAttributes redirectAttributes*/) {
+	//	// TODO Rebuild into registering users into DB
+	//	return Collections.singletonMap("name", principal.getAttribute("login"));
+	//}
+
+	@GetMapping("/memes/{id:.+}.png")
+	@ResponseBody
+	public ResponseEntity<byte[]> serveFile(@PathVariable Long id) {
+		byte[] file = this.memeRepository.getById(id).getImageBytes();
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION).body(file);
 	}
 
-	@GetMapping("/user")
-	public Map<String, Object> user(@AuthenticationPrincipal OAuth2User principal) {
-		return Collections.singletonMap("name", principal.getAttribute("login"));
+	@GetMapping("/memes/all")
+	@ResponseBody
+	public ResponseEntity<String> countMemes() {
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION).body("" + this.memeRepository.count());
 	}
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http
-				.authorizeRequests(a -> a
-						.antMatchers("/", "/error", "/webjars/**").permitAll()
-						.anyRequest().authenticated()
-				)
-				.exceptionHandling(e -> e
-						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-				)
-				.csrf(c -> c
-						.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-				)
-				.logout(l -> l
-						.logoutSuccessUrl("/").permitAll()
-				)
-				.oauth2Login();
+	@GetMapping("/")
+	public String listUploadedFiles(Model model) throws IOException {
+
+		model.addAttribute("meme_count", this.memeRepository.count());
+
+		//model.addAttribute("files", this.storageService.loadAll().map(
+		//				path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
+		//						"serveFile", path.getFileName().toString()).build().toUri().toString())
+		//		.collect(Collectors.toList()));
+
+		return "uploadForm";
 	}
+
+	@PostMapping("/")
+	public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
+		var meme = Meme.attemptBuild(file);
+
+		if (meme == null) return "/";
+
+		this.memeRepository.save(meme);
+		redirectAttributes.addFlashAttribute("message", "You successfully uploaded " + file.getOriginalFilename() + "!");
+
+		return "redirect:/";
+	}
+
+	//@Override
+	//protected void configure(HttpSecurity http) throws Exception {
+	//	http
+	//			.authorizeRequests(a -> a
+	//					.antMatchers("/", "/error", "/webjars/**").permitAll()
+	//					.anyRequest().authenticated()
+	//			)
+	//			.exceptionHandling(e -> e
+	//					.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+	//			)
+	//			.csrf(c -> c
+	//					.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+	//			)
+	//			.logout(l -> l
+	//					.logoutSuccessUrl("/").permitAll()
+	//			)
+	//			.oauth2Login();
+	//}
 }
