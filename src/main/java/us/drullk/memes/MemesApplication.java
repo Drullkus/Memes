@@ -6,18 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import us.drullk.memes.database.MemeRepository;
 import us.drullk.memes.database.entity.Meme;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 @SpringBootApplication
 @Controller
@@ -55,28 +54,36 @@ public class MemesApplication/* extends WebSecurityConfigurerAdapter*/ {
 	//	return Collections.singletonMap("name", principal.getAttribute("login"));
 	//}
 
-	@GetMapping("/memes/{id:.+}.png")
+	@GetMapping("/memes/{id:.+}")
 	@ResponseBody
 	public ResponseEntity<byte[]> serveFile(@PathVariable Long id) {
-		byte[] file = this.memeRepository.getById(id).getImageBytes();
-		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION).body(file);
+		try {
+			var meme = this.memeRepository.getById(id);
+
+			MediaType type = MediaType.parseMediaType(meme.getImageType());
+
+			return ResponseEntity.ok().contentType(type).header(HttpHeaders.CONTENT_DISPOSITION).body(meme.getImageBytes());
+		} catch (Exception e) {
+			logger.error("Could not send image to client!", e);
+
+			return ResponseEntity.internalServerError().build(); // TODO Further feedback about error
+		}
 	}
 
 	@GetMapping("/memes/all")
 	@ResponseBody
 	public ResponseEntity<String> countMemes() {
-		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION).body("" + this.memeRepository.count());
-	}
-
-	@GetMapping("/")
-	public String listUploadedFiles(Model model) throws IOException {
-
-		model.addAttribute("meme_count", this.memeRepository.count());
-
 		//model.addAttribute("files", this.storageService.loadAll().map(
 		//				path -> MvcUriComponentsBuilder.fromMethodName(FileUploadController.class,
 		//						"serveFile", path.getFileName().toString()).build().toUri().toString())
 		//		.collect(Collectors.toList()));
+
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION).body("" + this.memeRepository.count());
+	}
+
+	@GetMapping("/")
+	public String listUploadedFiles(Model model) {
+		model.addAttribute("meme_count", this.memeRepository.count());
 
 		return "uploadForm";
 	}

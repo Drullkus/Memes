@@ -18,30 +18,26 @@ public class Meme {
     @Getter
     private long id;
 
+    // TODO
     //@Column(name = "poster")
     //@Getter
     //@Setter
     //private long poster;
 
+    @Column(name = "filename")
+    @Getter
+    @Setter
+    private String fileName;
+
+    @Column(name = "image_type")
+    @Getter
+    @Setter
+    private String imageType;
+
     @Column(name = "image_bytes", columnDefinition = "bytea")
     @Getter
     @Setter
     private byte[] imageBytes;
-
-    public boolean copyFromFile(MultipartFile file) {
-        try {
-            Resource resource = file.getResource();
-
-            if (resource.isFile() && resource.isReadable())
-                this.imageBytes = file.getBytes().clone();
-        } catch (IOException e) {
-            MemesApplication.logger.error("Could not clone image!", e);
-
-            return false;
-        }
-
-        return true;
-    }
 
     @Nullable
     public static Meme attemptBuild(MultipartFile file) {
@@ -54,7 +50,9 @@ public class Meme {
             try {
                 Meme meme = new Meme();
 
-                meme.imageBytes = file.getBytes().clone();
+                meme.setFileName(file.getOriginalFilename());
+                meme.setImageType(file.getContentType());
+                meme.setImageBytes(file.getBytes().clone());
 
                 return meme;
             } catch (IOException e) {
