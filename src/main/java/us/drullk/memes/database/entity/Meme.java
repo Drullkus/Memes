@@ -16,7 +16,7 @@ public class Meme {
     @Id
     @GeneratedValue
     @Getter
-    private long id;
+    private long id; // Auto-enumerates
 
     // TODO
     @Column(name = "poster")

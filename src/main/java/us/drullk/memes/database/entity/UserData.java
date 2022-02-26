@@ -7,7 +7,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "meme_users")
-public class Memer {
+public class UserData {
     @Id
     @GeneratedValue
     @Getter
