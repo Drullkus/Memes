@@ -19,10 +19,10 @@ public class Meme {
     private long id;
 
     // TODO
-    //@Column(name = "poster")
-    //@Getter
-    //@Setter
-    //private long poster;
+    @Column(name = "poster")
+    @Getter
+    @Setter
+    private long poster;
 
     @Column(name = "filename")
     @Getter
@@ -56,7 +56,7 @@ public class Meme {
 
                 return meme;
             } catch (IOException e) {
-                MemesApplication.logger.error("Could not build meme!", e);
+                MemesApplication.LOGGER.error("Could not build meme!", e);
 
                 return null;
             }
