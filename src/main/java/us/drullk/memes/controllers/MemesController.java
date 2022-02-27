@@ -12,10 +12,20 @@ import us.drullk.memes.database.MemeRepository;
 import us.drullk.memes.database.entity.Meme;
 
 @RestController
-@RequestMapping("memes")
+@RequestMapping("api/memes")
 public class MemesController {
     @Autowired
     private MemeRepository memeRepository;
+
+    @PostMapping("/upload")
+    public void handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("message", "You successfully uploaded " + file.getOriginalFilename() + "!");
+
+        Meme memeUploaded = Meme.attemptBuild(file);
+
+        if (memeUploaded != null)
+            this.memeRepository.save(memeUploaded);
+    }
 
     @GetMapping("/image/{id:.+}")
     public ResponseEntity<byte[]> sendImage(@PathVariable Long id) {
@@ -32,17 +42,9 @@ public class MemesController {
         }
     }
 
-    @GetMapping("/data/{id:.+}")
-    public ResponseEntity<Meme> sendJson(@PathVariable Long id) {
-        try {
-            var meme = this.memeRepository.getById(id);
-
-            return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION).body(meme);
-        } catch (Exception e) {
-            MemesApplication.LOGGER.error("Could not send image to client!", e);
-
-            return ResponseEntity.internalServerError().build(); // TODO Further feedback about error
-        }
+    @GetMapping("/id/{serial:.+}")
+    public ResponseEntity<Meme> searchWithID(@PathVariable Long serial) {
+        return this.memeRepository.findById(serial).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/count")
@@ -50,21 +52,8 @@ public class MemesController {
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION).body("" + this.memeRepository.count());
     }
 
-    //@GetMapping("/")
-    //public String listUploadedFiles(Model model) {
-    //    model.addAttribute("meme_count", this.memeRepository.count());
-    //    return "uploadForm";
-    //}
-
-    @PostMapping("/upload")
-    public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
-        var meme = Meme.attemptBuild(file);
-
-        if (meme == null) return "/";
-
-        this.memeRepository.save(meme);
-        redirectAttributes.addFlashAttribute("message", "You successfully uploaded " + file.getOriginalFilename() + "!");
-
-        return "redirect:/";
+    @GetMapping(value = "/all")
+    public ResponseEntity<Meme[]> allMemes() {
+        return ResponseEntity.ok(this.memeRepository.findAll().toArray(Meme[]::new));
     }
 }

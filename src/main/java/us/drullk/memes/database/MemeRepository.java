@@ -9,5 +9,5 @@ import java.util.List;
 public interface MemeRepository extends JpaRepository<Meme, Long> {
     // TODO Any additional functionality: https://www.baeldung.com/spring-data-jpa-method-in-all-repositories
 
-    List<Meme> findByPoster(@Param("poster") long poster);
+    //List<Meme> findByPoster(@Param("poster") long poster);
 }

@@ -19,10 +19,10 @@ public class Meme {
     private long id; // Auto-enumerates
 
     // TODO
-    @Column(name = "poster")
-    @Getter
-    @Setter
-    private long poster;
+    //@Column(name = "poster")
+    //@Getter
+    //@Setter
+    //private long poster;
 
     @Column(name = "filename")
     @Getter

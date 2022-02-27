@@ -12,8 +12,7 @@ import us.drullk.memes.database.entity.UserData;
 import java.util.List;
 
 @RestController
-//@RequestMapping(value = "user", produces = MediaType.APPLICATION_JSON_VALUE)
-@RequestMapping("user")
+@RequestMapping("api/users")
 public class UsersController {
     @Autowired
     private UserRepository userRepository;
@@ -26,12 +25,12 @@ public class UsersController {
 
 	@GetMapping(value = "/id/{serial:.+}")
 	public ResponseEntity<UserData> searchWithID(@PathVariable Long serial) {
-		return ResponseEntity.of(this.userRepository.findById(serial));
+		return this.userRepository.findById(serial).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@GetMapping(value = "/name/{name:.+}")
 	public ResponseEntity<UserData> searchWithName(@PathVariable String name) {
-		return ResponseEntity.of(this.userRepository.findByDisplayName(name));
+		return this.userRepository.findByDisplayName(name).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@GetMapping(value = "/count")

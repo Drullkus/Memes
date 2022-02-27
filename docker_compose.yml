@@ -18,11 +18,11 @@ services:
       - "8080:8080"
     depends_on:
       - db
-    environment:
-      - GITHUB_OAUTH_ID # To be directly passed in from an .env file
-      - GITHUB_OAUTH_SECRET # To be directly passed in from an .env file
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    environment: # All values are from an .env file, and are either passed in directly or by reference below
+      - GITHUB_OAUTH_ID
+      - GITHUB_OAUTH_SECRET
+      - SPRING_DATASOURCE_URL
+      - SPRING_JPA_HIBERNATE_DDL_AUTO
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
 
