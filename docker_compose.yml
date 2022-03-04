@@ -1,23 +1,23 @@
 version: "3.8" # https://docs.docker.com/compose/compose-file/compose-file-v3/
 
 services:
-  db:
+  memes_database:
     image: 'postgres:13.1-alpine'
-    container_name: db
+    container_name: memes_db
     environment:
       - POSTGRES_USER
       - POSTGRES_PASSWORD
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-memes:/var/lib/postgresql/data
 
-  meme_app:
-    container_name: smashing_memes_together # Aaaayy
+  memes_spring:
+    container_name: memes_api
     build:
       dockerfile: gradle_built.dockerfile
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - memes_database
     environment: # All values are from an .env file, and are either passed in directly or by reference below
       - GITHUB_OAUTH_ID
       - GITHUB_OAUTH_SECRET
@@ -26,5 +26,14 @@ services:
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
 
+  memes_react:
+    container_name: memes_web
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+#   depends_on:
+#     - memes_spring
+
 volumes:
-  postgres-data:
+  postgres-memes:
